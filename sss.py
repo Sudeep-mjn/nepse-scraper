@@ -22,7 +22,6 @@ SHEET_WORKSHEET = "Sheet1"
 URL = "https://www.sharesansar.com/today-share-price"
 SERVICE_ACCOUNT_FILE = "GOOGLE_SERVICE_ACCOUNT_JSON"
 
-# 8 columns in exact order
 OUTPUT_COLUMNS = [
     'Date', 'Symbol', 'Open', 'High', 'Low', 
     'Close', 'Close-LTP %', 'Volumn'
@@ -35,13 +34,11 @@ HEADERS = {
 # =================================================
 
 def get_nepal_date():
-    from datetime import datetime
     import pytz
     nepal_tz = pytz.timezone('Asia/Kathmandu')
     return datetime.now(nepal_tz).strftime("%Y-%m-%d")
 
 def is_saturday(date_str):
-    from datetime import datetime
     date_obj = datetime.strptime(date_str, "%Y-%m-%d")
     return date_obj.weekday() == 5
 
@@ -89,12 +86,24 @@ def scrape_sharesansar():
     print(f"📊 Scraping Sharesansar: {URL}")
     print("=" * 70)
     
-    tables = pd.read_html(URL, header=0)
+    # Try parsers in order of preference
+    parsers = ['lxml', 'html5lib', 'beautifulsoup4', 'html.parser']
+    df = None
     
-    if not tables:
-        raise Exception("No tables found on Sharesansar page")
+    for parser in parsers:
+        try:
+            tables = pd.read_html(URL, header=0, flavor=parser)
+            if tables:
+                print(f"✓ Successfully parsed with '{parser}'")
+                df = tables[0]
+                break
+        except Exception as e:
+            print(f"⚠️  Parser '{parser}' failed: {e}")
+            continue
     
-    df = tables[0]
+    if df is None:
+        raise Exception("No tables found - all parsers failed")
+    
     print(f"✓ Found {len(df)} companies")
     print(f"✓ Original columns: {df.columns.tolist()}")
     
@@ -155,7 +164,6 @@ def check_if_data_changed(sheet, today_data):
             print("✓ Sheet is empty - new data will be added")
             return True
         
-        from datetime import datetime, timedelta
         import pytz
         nepal_tz = pytz.timezone('Asia/Kathmandu')
         now = datetime.now(nepal_tz)
@@ -270,6 +278,8 @@ def main():
         
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 if __name__ == "__main__":
