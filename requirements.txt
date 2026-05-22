@@ -5,3 +5,4 @@ gspread
 google-auth
 oauth2client
 pytz
+lxml
