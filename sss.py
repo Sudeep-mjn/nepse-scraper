@@ -20,7 +20,7 @@ import json
 SHEET_NAME = "nepseScrap"
 SHEET_WORKSHEET = "Sheet1"
 URL = "https://www.sharesansar.com/today-share-price"
-SERVICE_ACCOUNT_FILE = "service-account-key.json"
+SERVICE_ACCOUNT_FILE = "serviceAccountKey"
 
 # 8 columns in exact order
 OUTPUT_COLUMNS = [
